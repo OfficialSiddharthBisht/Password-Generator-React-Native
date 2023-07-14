@@ -1,4 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
+import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 // Form Validation
@@ -11,6 +12,23 @@ const PasswordSchema = Yup.object().shape({
   .required("This is a required field")
 })
 export default function App() {
+  const [password, setPassword] = useState('')
+  const [isPassGenerated, setIsPassGenerated] = useState(false);
+  const [lowerCase,setLowerCase] = useState(true);
+  const [upperCase,setUpperCase] = useState(false);
+  const [numbers,useNumbers] = useState(false);
+  const [symbols,useSymbols] = useState(false);
+
+  const generatePasswordString = (passwordLength) =>{
+    // 
+  }
+  const createPassword = (characters, passwordString) =>{
+    // 
+  }
+  const resetPasswordState = () =>{
+    // 
+  }
+
   return (
     <View style={styles.container}>
       <Text>Open up App.js to start working on your app!</Text>
