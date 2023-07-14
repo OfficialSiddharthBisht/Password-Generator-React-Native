@@ -1,74 +1,184 @@
-import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StatusBar } from "expo-status-bar";
+import { Formik } from "formik";
+import { useState } from "react";
+import { SafeAreaView, TextInput, TouchableOpacity } from "react-native";
+import { ScrollView } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
+
+import BouncyCheckbox from "react-native-bouncy-checkbox";
 
 // Form Validation
-import * as Yup from 'yup';
+import * as Yup from "yup";
 
 const PasswordSchema = Yup.object().shape({
-  passwordLength : Yup.number()
-  .min(8,"Should be min of 4 characters")
-  .max(16,"Cannot be more then 16 characters")
-  .required("This is a required field")
-})
+  passwordLength: Yup.number()
+    .min(8, "Should be min of 4 characters")
+    .max(16, "Cannot be more then 16 characters")
+    .required("This is a required field"),
+});
 export default function App() {
-  const [password, setPassword] = useState('')
+  const [password, setPassword] = useState("");
   const [isPassGenerated, setIsPassGenerated] = useState(false);
-  const [lowerCase,setLowerCase] = useState(true);
-  const [upperCase,setUpperCase] = useState(false);
-  const [numbers,setNumbers] = useState(false);
-  const [symbols,setSymbols] = useState(false);
+  const [lowerCase, setLowerCase] = useState(true);
+  const [upperCase, setUpperCase] = useState(false);
+  const [numbers, setNumbers] = useState(false);
+  const [symbols, setSymbols] = useState(false);
 
-  const generatePasswordString = (passwordLength) =>{
-    let characterList = '';
+  const generatePasswordString = (passwordLength) => {
+    let characterList = "";
     const upperCaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     const lowerCaseChars = "abcdefghijklmnopqrstuvwxyz";
     const digitChars = "0123456789";
     const specialChars = "!@#$%^&*()_+-=";
-    if(upperCase){
+    if (upperCase) {
       characterList += upperCaseChars;
     }
-    if(lowerCase){
+    if (lowerCase) {
       characterList += lowerCaseChars;
     }
-    if(numbers){
+    if (numbers) {
       characterList += digitChars;
     }
-    if(symbols){
+    if (symbols) {
       characterList += symbols;
     }
-    const passwordResult = createPassword(characterList,passwordLength);
-    setPassword(passwordResult)
+    const passwordResult = createPassword(characterList, passwordLength);
+    setPassword(passwordResult);
     setIsPassGenerated(true);
-  }
-  const createPassword = (characters, passwordLength) =>{
+  };
+  const createPassword = (characters, passwordLength) => {
     let result = "";
-    for(let i = 0; i < passwordLength; i++){
+    for (let i = 0; i < passwordLength; i++) {
       const characterIndex = Math.round(Math.random() * characters.length);
       result += characters.charAt(characterIndex);
     }
     return result;
-  }
-  const resetPasswordState = () =>{
-    setPassword('');
+  };
+  const resetPasswordState = () => {
+    setPassword("");
     setIsPassGenerated(false);
     setLowerCase(true);
     setUpperCase(false);
-    setNumbers(false)
+    setNumbers(false);
     setSymbols(false);
-  }
+  };
 
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <ScrollView keyboardShouldPersistTaps="handled">
+      <SafeAreaView style={styles.appContainer}>
+        <View style={styles.formContainer}>
+          <Text style={styles.title}>Password Generator</Text>
+          <Formik
+            initialValues={{ passwordLength: "" }}
+            validationSchema={PasswordSchema}
+            onSubmit={(values) => {
+              console.log(values);
+              generatePasswordString(+values.passwordLength);
+            }}
+          >
+            {({
+              values,
+              errors,
+              touched,
+              isValid,
+              handleChange,
+              handleSubmit,
+              handleReset,
+              /* and other goodies */
+            }) => (
+              <>
+                <View style={styles.inputWrapper}>
+                  <View style={styles.inputColumn}>
+                    <Text style={styles.heading}>Password Length</Text>
+                    {touched.passwordLength && errors.passwordLength && (
+                      <Text style={styles.errorText}>
+                        {errors.passwordLength}
+                      </Text>
+                    )}
+                  </View>
+                  <TextInput
+                    style={styles.inputStyle}
+                    value={values.passwordLength}
+                    onChangeText={handleChange("passwordLength")}
+                    placeholder="Eg.8"
+                    keyboardType="numeric"
+                  />
+                </View>
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.heading}>Includes Lowercase</Text>
+                  <BouncyCheckbox
+                    disableBuiltInState
+                    isChecked={lowerCase}
+                    onPress={() => setLowerCase(!lowerCase)}
+                    fillColor="red"
+                  />
+                </View>
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.heading}>Includes UpperCase</Text>
+                  <BouncyCheckbox
+                    disableBuiltInState
+                    isChecked={upperCase}
+                    onPress={() => setUpperCase(!upperCase)}
+                    fillColor="green"
+                  />
+                </View>
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.heading}>Includes Numbers</Text>
+                  <BouncyCheckbox
+                    disableBuiltInState
+                    isChecked={numbers}
+                    onPress={() => setNumbers(!numbers)}
+                    fillColor="blue"
+                  />
+                </View>
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.heading}>Includes Symbols</Text>
+                  <BouncyCheckbox
+                    disableBuiltInState
+                    isChecked={symbols}
+                    onPress={() => setSymbols(!symbols)}
+                    fillColor="purple"
+                  />
+                </View>
+
+                <View style={styles.formActions}>
+                  <TouchableOpacity
+                    disabled={!isValid}
+                    style={styles.primaryBtn}
+                    onPress={handleSubmit}
+                  >
+                    <Text style={styles.primaryBtnTxt}>Generate Password</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.secondaryBtn}
+                    onPress={() => {
+                      handleReset();
+                      resetPasswordState();
+                    }}
+                  >
+                    <Text style={styles.secondaryBtnTxt}>Reset</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+          </Formik>
+          {isPassGenerated ? <View style={[styles.card,styles.cardElevated]}>
+            <Text style={styles.subTitle}>Your Password</Text>
+            <Text style={styles.description}>Long Press To Copy The Password</Text>
+            <Text style={styles.generatedPassword} selectable={true}>
+              {password}
+            </Text>
+          </View> : null}
+        </View>
+      </SafeAreaView>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   appContainer: {
     flex: 1,
+    marginTop:50,
   },
   formContainer: {
     margin: 8,
@@ -76,16 +186,16 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 15,
   },
   subTitle: {
     fontSize: 26,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 2,
   },
   description: {
-    color: '#758283',
+    color: "#758283",
     marginBottom: 8,
   },
   heading: {
@@ -93,49 +203,50 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     marginBottom: 15,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    flexDirection: 'row',
+    alignItems: "center",
+    justifyContent: "space-between",
+    flexDirection: "row",
   },
   inputColumn: {
-    flexDirection: 'column',
+    flexDirection: "column",
   },
   inputStyle: {
     padding: 8,
-    width: '30%',
+    width: "30%",
     borderWidth: 1,
     borderRadius: 4,
-    borderColor: '#16213e',
+    borderColor: "#16213e",
   },
   errorText: {
     fontSize: 12,
-    color: '#ff0d10',
+    color: "#ff0d10",
   },
   formActions: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
   },
   primaryBtn: {
     width: 120,
     padding: 10,
     borderRadius: 8,
     marginHorizontal: 8,
-    backgroundColor: '#5DA3FA',
+    backgroundColor: "#5DA3FA",
   },
   primaryBtnTxt: {
-    color: '#fff',
-    textAlign: 'center',
-    fontWeight: '700',
+    color: "#fff",
+    textAlign: "center",
+    fontWeight: "700",
   },
   secondaryBtn: {
     width: 120,
     padding: 10,
     borderRadius: 8,
     marginHorizontal: 8,
-    backgroundColor: '#CAD5E2',
+    backgroundColor: "#CAD5E2",
   },
   secondaryBtnTxt: {
-    textAlign: 'center',
+    textAlign: "center",
+    fontWeight: "bold",
   },
   card: {
     padding: 12,
@@ -143,20 +254,20 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
   },
   cardElevated: {
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     elevation: 1,
     shadowOffset: {
       width: 1,
       height: 1,
     },
-    shadowColor: '#333',
+    shadowColor: "#333",
     shadowOpacity: 0.2,
     shadowRadius: 2,
   },
   generatedPassword: {
     fontSize: 22,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 12,
-    color:'#000'
+    color: "#000",
   },
 });
